@@ -125,9 +125,9 @@ export class TennisEngine {
 
     // Load assets
     this.courtImg.src = '/assets/court-new.png';
-    this.crowdLeftImg.src = '/assets/crowd-left.png';
-    this.crowdRightImg.src = '/assets/crowd-right.png';
-    this.umpireImg.src = '/assets/umpire.png';
+    this.crowdLeftImg.src = '/assets/crowd-left-new.png';
+    this.crowdRightImg.src = '/assets/crowd-right-new.png';
+    this.umpireImg.src = '/assets/umpire-side.png';
 
     Promise.all([
       new Promise<void>(r => { this.courtImg.onload = () => r(); this.courtImg.onerror = () => r(); }),
@@ -649,28 +649,21 @@ export class TennisEngine {
     if (!this.assetsLoaded) return;
     const { x: cx, y: cy, w: cw, h: ch } = this.court;
 
-    // Left crowd
+    // Left crowd - positioned on the left side of the court
     if (this.crowdLeftImg.complete && this.crowdLeftImg.naturalWidth > 0) {
-      const clSize = 60;
       c.save();
-      c.globalAlpha = 0.7;
-      // Draw multiple crowd sprites along left edge
-      for (let i = 0; i < 4; i++) {
-        const cy_pos = cy + (ch / 4) * i + 10;
-        c.drawImage(this.crowdLeftImg, cx - clSize - 5, cy_pos - clSize / 2, clSize, clSize);
-      }
+      c.globalAlpha = 0.5;
+      // Draw at left edge, partially overlapping court edge
+      c.drawImage(this.crowdLeftImg, cx - 50, cy, 60, ch);
       c.restore();
     }
 
-    // Right crowd
+    // Right crowd - positioned on the right side of the court
     if (this.crowdRightImg.complete && this.crowdRightImg.naturalWidth > 0) {
-      const crSize = 60;
       c.save();
-      c.globalAlpha = 0.7;
-      for (let i = 0; i < 4; i++) {
-        const cy_pos = cy + (ch / 4) * i + 10;
-        c.drawImage(this.crowdRightImg, cx + cw + 5, cy_pos - crSize / 2, crSize, crSize);
-      }
+      c.globalAlpha = 0.5;
+      // Draw at right edge, partially overlapping court edge
+      c.drawImage(this.crowdRightImg, cx + cw - 10, cy, 60, ch);
       c.restore();
     }
   }
@@ -680,10 +673,11 @@ export class TennisEngine {
     const { x: cx, w: cw } = this.court;
 
     if (this.umpireImg.complete && this.umpireImg.naturalWidth > 0) {
+      // Umpire sits on the LEFT side of the net, on a tall chair
       const uw = 40;
-      const uh = 40;
-      const ux = cx + cw / 2 - uw / 2;
-      const uy = this.netY - uh + 5;
+      const uh = 50;
+      const ux = cx - uw + 8; // Left side of court, visible in canvas
+      const uy = this.netY - uh / 2 - 5; // At net height
       c.save();
       c.globalAlpha = 0.85;
       c.drawImage(this.umpireImg, ux, uy, uw, uh);
