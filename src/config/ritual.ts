@@ -25,203 +25,89 @@ export const ritualChain = defineChain({
 export const ritualTestnet = ritualChain;
 
 // ============================================================
-// IMPORTANT: Ganti alamat di bawah ini dengan contract address
-// kamu yang sudah di-deploy via Remix di Ritual Testnet.
-//
-// Cara dapat address:
-// 1. Buka Remix → tab "Deploy & Run" → lihat "Deployed Contracts"
-// 2. Copy alamat contract (0x...)
-// 3. Paste di bawah ini, ganti 0x0000...
+// CONTRACT ADDRESS — sudah di-deploy di Ritual Testnet via Remix
 // ============================================================
-export const GAME_CONTRACT_ADDRESS = '0x7e72cCB5f22b3E6F14D1f0ce49222D387e1c29B6' as const;
+export const GAME_CONTRACT_ADDRESS = '0x1183D74394396e69819fd6149ABD56A48c646244' as const;
 
-// Helper untuk cek apakah contract address sudah di-set
-export const isContractConfigured = () => {
-  return GAME_CONTRACT_ADDRESS !== '0x7e72cCB5f22b3E6F14D1f0ce49222D387e1c29B6';
+// Helper untuk cek apakah contract address sudah di-set (bukan dummy)
+export const isContractConfigured = (): boolean => {
+  return GAME_CONTRACT_ADDRESS !== ('0x0000000000000000000000000000000000000000' as `0x${string}`);
 };
 
 // ABI contract game (harus sama persis dengan contract di Remix)
 export const GAME_CONTRACT_ABI = [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "levelId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "stars",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "rallyLength",
-        "type": "uint256"
-      }
-    ],
-    "name": "MatchCompleted",
-    "type": "event"
+    inputs: [],
+    name: 'registerPlayer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "username",
-        "type": "string"
-      }
+    inputs: [
+      { name: 'levelId', type: 'uint256' },
+      { name: 'playerScore', type: 'uint256' },
+      { name: 'aiScore', type: 'uint256' },
+      { name: 'starsEarned', type: 'uint256' },
+      { name: 'rallyLength', type: 'uint256' },
+      { name: 'aiPersonalityHash', type: 'bytes32' },
     ],
-    "name": "PlayerRegistered",
-    "type": "event"
+    name: 'submitMatchResult',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "registerPlayer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [{ name: 'score', type: 'uint256' }],
+    name: 'updateEndlessScore',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "levelId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "playerScore",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "aiScore",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "starsEarned",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "rallyLength",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "aiPersonalityHash",
-        "type": "bytes32"
-      }
+    inputs: [{ name: '', type: 'address' }],
+    name: 'players',
+    outputs: [
+      { name: 'username', type: 'string' },
+      { name: 'totalMatches', type: 'uint256' },
+      { name: 'totalWins', type: 'uint256' },
+      { name: 'totalStars', type: 'uint256' },
+      { name: 'endlessHighScore', type: 'uint256' },
+      { name: 'lastPlayedAt', type: 'uint256' },
+      { name: 'exists', type: 'bool' },
     ],
-    "name": "submitMatchResult",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "score",
-        "type": "uint256"
-      }
+    inputs: [
+      { name: '', type: 'address' },
+      { name: '', type: 'uint256' },
     ],
-    "name": "updateEndlessScore",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'levelBestStars',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'player', type: 'address' },
+      { indexed: false, name: 'username', type: 'string' },
     ],
-    "name": "levelBestStars",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'PlayerRegistered',
+    type: 'event',
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'player', type: 'address' },
+      { indexed: true, name: 'levelId', type: 'uint256' },
+      { indexed: false, name: 'stars', type: 'uint256' },
+      { indexed: false, name: 'rallyLength', type: 'uint256' },
     ],
-    "name": "players",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "username",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalMatches",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalWins",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalStars",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "endlessHighScore",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastPlayedAt",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "exists",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'MatchCompleted',
+    type: 'event',
   },
 ] as const;
 

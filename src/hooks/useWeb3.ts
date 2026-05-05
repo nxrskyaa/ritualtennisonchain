@@ -165,6 +165,38 @@ export function useWeb3() {
     }
   }, []);
 
+  // ============================================================
+  // REGISTER PLAYER — wajib dipanggil sebelum submit score
+  // ============================================================
+  const registerPlayer = useCallback(async (): Promise<{ success: boolean; hash?: string; error?: string }> => {
+    const eth = providerRef.current;
+    if (!eth || !account) {
+      return { success: false, error: 'Wallet not connected' };
+    }
+
+    try {
+      const data = encodeFunctionData({
+        abi: GAME_CONTRACT_ABI,
+        functionName: 'registerPlayer',
+        args: [],
+      });
+
+      const txHash = await eth.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: account,
+          to: GAME_CONTRACT_ADDRESS,
+          data,
+          value: '0x0',
+        }],
+      });
+
+      return { success: true, hash: txHash as string };
+    } catch (err: any) {
+      return { success: false, error: err?.message || err?.error?.message || 'Registration rejected' };
+    }
+  }, [account]);
+
   // Listen for chain/account changes
   useEffect(() => {
     const eth = getProvider();
@@ -267,6 +299,7 @@ export function useWeb3() {
     connect,
     disconnect,
     readProfile,
+    registerPlayer,
     submitMatchResult,
   };
 }

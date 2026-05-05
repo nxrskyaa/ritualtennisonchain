@@ -125,7 +125,22 @@ export default function App() {
     if (web3.isConnected && web3.isOnRitual) {
       toast.loading('Submitting score to Ritual Testnet...', { id: 'submit-score' });
 
-      const result = await web3.submitMatchResult(
+      let result;
+
+      // Step 1: Cek apakah player sudah registered
+      const profile = await web3.readProfile(web3.account!);
+      if (!profile || !profile.exists) {
+        toast.loading('Registering player on-chain...', { id: 'submit-score' });
+        const regResult = await web3.registerPlayer();
+        if (!regResult.success) {
+          toast.error(`Registration failed: ${regResult.error}`, { id: 'submit-score', duration: 4000 });
+        } else {
+          toast.success('Player registered! Now submitting score...', { id: 'submit-score' });
+        }
+      }
+
+      // Step 2: Submit match result
+      result = await web3.submitMatchResult(
         selectedLevel,
         playerScore,
         aiScore,
