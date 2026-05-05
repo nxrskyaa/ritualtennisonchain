@@ -3,8 +3,11 @@ import { X, Wallet, AlertCircle, ExternalLink, Check } from 'lucide-react';
 
 interface WalletConnectProps {
   onConnect: (walletType: string) => void;
+  onDisconnect: () => void;
   onClose: () => void;
   isConnecting: boolean;
+  isConnected: boolean;
+  account: string | null;
   isOnRitual: boolean;
   chainId: number | null;
   error: string | null;
@@ -17,7 +20,7 @@ const WALLETS = [
   { id: 'phantom', name: 'Phantom EVM', icon: '/assets/logo.png', desc: 'Solana + EVM' },
 ];
 
-export default function WalletConnect({ onConnect, onClose, isConnecting, isOnRitual, chainId, error }: WalletConnectProps) {
+export default function WalletConnect({ onConnect, onDisconnect, onClose, isConnecting, isConnected, account, isOnRitual, chainId, error }: WalletConnectProps) {
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
   const [step, setStep] = useState<'select' | 'guide'>('select');
 
@@ -26,6 +29,38 @@ export default function WalletConnect({ onConnect, onClose, isConnecting, isOnRi
       onConnect(selectedWallet);
     }
   };
+
+  // Already connected view
+  if (isConnected && account) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative w-full max-w-sm rounded-2xl p-5 border border-[#39ff14]/20"
+             style={{ background: 'linear-gradient(180deg, #0f1a0f 0%, #0a0a0f 100%)', boxShadow: '0 0 30px rgba(57,255,20,0.1)' }}>
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/40 hover:text-white z-10"><X size={18} /></button>
+
+          <div className="flex justify-center mb-4">
+            <div className="w-14 h-14 rounded-xl bg-[#39ff14]/10 flex items-center justify-center border border-[#39ff14]/20">
+              <Wallet size={28} className="text-[#39ff14]" />
+            </div>
+          </div>
+
+          <h2 className="text-white text-lg font-bold text-center mb-1">Wallet Connected</h2>
+          <p className="text-white/50 text-xs text-center mb-4 font-mono">{account.slice(0, 8)}...{account.slice(-6)}</p>
+
+          <div className="flex items-center justify-center gap-2 mb-4 py-1.5 px-3 rounded-full border bg-[#39ff14]/10 border-[#39ff14]/20">
+            <div className="w-2 h-2 rounded-full animate-pulse bg-[#39ff14]" />
+            <span className="text-xs font-bold text-[#39ff14]">Ritual Chain Connected</span>
+          </div>
+
+          <button onClick={() => { onDisconnect(); onClose(); }}
+            className="w-full h-11 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 font-bold hover:bg-red-500/30 hover:scale-105 transition-all flex items-center justify-center gap-2">
+            Disconnect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

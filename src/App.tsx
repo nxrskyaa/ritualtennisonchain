@@ -283,8 +283,17 @@ export default function App() {
       {showAbout && <AboutScreen onBack={() => setShowAbout(false)} />}
 
       {showWalletConnect && (
-        <WalletConnect onConnect={web3.connect} onClose={() => setShowWalletConnect(false)}
-          isConnecting={web3.isConnecting} isOnRitual={web3.isOnRitual} chainId={web3.chainId} error={web3.error} />
+        <WalletConnect
+          onConnect={web3.connect}
+          onDisconnect={web3.disconnect}
+          onClose={() => setShowWalletConnect(false)}
+          isConnecting={web3.isConnecting}
+          isConnected={web3.isConnected}
+          account={web3.account}
+          isOnRitual={web3.isOnRitual}
+          chainId={web3.chainId}
+          error={web3.error}
+        />
       )}
 
       {showMatchResult && matchResult && (

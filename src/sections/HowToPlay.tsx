@@ -1,4 +1,4 @@
-import { ArrowLeft, MoveHorizontal, Target, Star, Zap, Clock, Wallet, Sparkles } from 'lucide-react';
+import { ArrowLeft, MousePointer2, Target, Star, Zap, Clock, Wallet, Sparkles } from 'lucide-react';
 
 interface HowToPlayProps { onBack: () => void; }
 
@@ -15,7 +15,7 @@ export default function HowToPlay({ onBack }: HowToPlayProps) {
 
       <div className="max-w-md mx-auto space-y-3 pb-8">
         {[
-          { icon: <MoveHorizontal size={20} />, title: 'Controls', text: 'Use Arrow Keys or A/D to move left and right. On mobile, tap left or right side of the screen. Your character auto-hits the ball when it gets close!' },
+          { icon: <MousePointer2 size={20} />, title: 'Controls', text: 'Move your mouse horizontally to control your character. On mobile, drag your finger left and right. Your character auto-hits the ball when it gets close!' },
           { icon: <Target size={20} />, title: 'Objective', text: 'Score points by making the ball land on your opponent\'s side. First to reach the target score wins the match!' },
           { icon: <Star size={20} />, title: 'Star Rating', text: '3-0 win = 3 stars, 3-1 = 2 stars, 3-2 = 1 star. Bonus star for rallies of 10+ hits!' },
           { icon: <Zap size={20} />, title: 'Rally System', text: 'Every successful hit increases ball speed! Long rallies create intense, fast-paced gameplay. Keep the rally going!' },
