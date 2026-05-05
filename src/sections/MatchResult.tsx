@@ -46,17 +46,25 @@ export default function MatchResult({ result, onNextLevel, onRetry, onMenu, hasN
          style={{ background: 'linear-gradient(180deg, #0a0a0f 0%, #0d1a0d 100%)' }}>
       <div className="max-w-sm w-full flex flex-col items-center">
 
-        {/* Win/Lose */}
+        {/* Win/Lose with character sprites */}
         {result.winner === 'player' ? (
           <div className="text-center mb-3">
-            <Trophy className="w-14 h-14 text-[#39ff14] mx-auto mb-2" style={{ filter: 'drop-shadow(0 0 15px rgba(57,255,20,0.5))' }} />
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <img src="/assets/player-new.png" alt="" className="w-14 h-14 object-contain" style={{ filter: 'drop-shadow(0 0 10px rgba(57,255,20,0.5))' }} />
+              <Trophy className="w-10 h-10 text-[#39ff14]" style={{ filter: 'drop-shadow(0 0 10px rgba(57,255,20,0.5))' }} />
+              <img src="/assets/bot-cat.png" alt="" className="w-12 h-12 object-contain opacity-50" />
+            </div>
             <h2 className="text-3xl font-extrabold text-[#39ff14]" style={{ textShadow: '0 0 20px rgba(57,255,20,0.5)', fontFamily: '"Fredoka One", sans-serif' }}>
               VICTORY
             </h2>
           </div>
         ) : (
           <div className="text-center mb-3">
-            <Zap className="w-14 h-14 text-red-400 mx-auto mb-2" />
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <img src="/assets/player-new.png" alt="" className="w-14 h-14 object-contain opacity-50" />
+              <Zap className="w-10 h-10 text-red-400" />
+              <img src="/assets/bot-cat.png" alt="" className="w-12 h-12 object-contain" style={{ filter: 'drop-shadow(0 0 10px rgba(255,68,68,0.4))' }} />
+            </div>
             <h2 className="text-3xl font-extrabold text-red-400" style={{ fontFamily: '"Fredoka One", sans-serif' }}>DEFEAT</h2>
           </div>
         )}
@@ -97,10 +105,16 @@ export default function MatchResult({ result, onNextLevel, onRetry, onMenu, hasN
 
             {/* Card content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-              {/* Player image */}
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 mb-2 flex items-center justify-center"
-                   style={{ borderColor: rarityColor, boxShadow: `0 0 10px ${rarityColor}40` }}>
-                <img src="/assets/player.png" alt="" className="w-full h-full object-cover" />
+              {/* Player vs Bot image */}
+              <div className="flex items-center gap-1 mb-2">
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 flex items-center justify-center"
+                     style={{ borderColor: rarityColor, boxShadow: `0 0 10px ${rarityColor}40` }}>
+                  <img src="/assets/player-new.png" alt="" className="w-full h-full object-cover" />
+                </div>
+                <span className="text-white/30 text-xs">vs</span>
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 flex items-center justify-center border-purple-400/40">
+                  <img src="/assets/bot-cat.png" alt="" className="w-full h-full object-cover" />
+                </div>
               </div>
 
               {/* Title */}

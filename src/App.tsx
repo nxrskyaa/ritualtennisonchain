@@ -150,6 +150,19 @@ export default function App() {
       );
 
       if (result.success) {
+        // Simpan tx hash ke localStorage untuk history
+        const txHistory = JSON.parse(localStorage.getItem('ritual_tx_history') || '[]');
+        txHistory.unshift({
+          hash: result.hash,
+          level: selectedLevel,
+          playerScore,
+          aiScore,
+          stars,
+          timestamp: Date.now(),
+        });
+        // Keep only last 20
+        localStorage.setItem('ritual_tx_history', JSON.stringify(txHistory.slice(0, 20)));
+
         toast.success(
           <div className="flex flex-col gap-1">
             <span>Score saved on-chain!</span>

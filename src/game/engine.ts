@@ -51,8 +51,8 @@ export class TennisEngine {
 
   private ball!: Ball3D;
   // Player and AI as characters with x,y position on court
-  private pl = { x: 0, y: 0, r: 14, speed: 300 };
-  private ai = { x: 0, y: 0, r: 14, speed: 220 };
+  private pl = { x: 0, y: 0, r: 22, speed: 300 };
+  private ai = { x: 0, y: 0, r: 22, speed: 220 };
   private s!: GameState;
   private level: LevelConfig;
   private pers: AIPersonality;
@@ -72,9 +72,9 @@ export class TennisEngine {
 
   // Assets
   private courtImg = new Image();
-  private crowdLeftImg = new Image();
-  private crowdRightImg = new Image();
   private umpireImg = new Image();
+  private playerImg = new Image();
+  private botImg = new Image();
   private assetsLoaded = false;
 
   // Pointer tracking
@@ -125,15 +125,15 @@ export class TennisEngine {
 
     // Load assets
     this.courtImg.src = '/assets/court-new.png';
-    this.crowdLeftImg.src = '/assets/crowd-left-new.png';
-    this.crowdRightImg.src = '/assets/crowd-right-new.png';
     this.umpireImg.src = '/assets/umpire-side.png';
+    this.playerImg.src = '/assets/player-new.png';
+    this.botImg.src = '/assets/bot-cat.png';
 
     Promise.all([
       new Promise<void>(r => { this.courtImg.onload = () => r(); this.courtImg.onerror = () => r(); }),
-      new Promise<void>(r => { this.crowdLeftImg.onload = () => r(); this.crowdLeftImg.onerror = () => r(); }),
-      new Promise<void>(r => { this.crowdRightImg.onload = () => r(); this.crowdRightImg.onerror = () => r(); }),
       new Promise<void>(r => { this.umpireImg.onload = () => r(); this.umpireImg.onerror = () => r(); }),
+      new Promise<void>(r => { this.playerImg.onload = () => r(); this.playerImg.onerror = () => r(); }),
+      new Promise<void>(r => { this.botImg.onload = () => r(); this.botImg.onerror = () => r(); }),
     ]).then(() => { this.assetsLoaded = true; });
 
     this.setupInput();
@@ -593,7 +593,7 @@ export class TennisEngine {
     c.save();
     c.translate(this.shake.x, this.shake.y);
     this.drawCourt(c);
-    this.drawCrowd(c);
+    this.drawSideBranding(c);
     this.drawUmpire(c);
     this.drawNet(c);
     this.drawPlayer(c);
@@ -645,26 +645,68 @@ export class TennisEngine {
     }
   }
 
-  private drawCrowd(c: CanvasRenderingContext2D) {
-    if (!this.assetsLoaded) return;
+  private drawSideBranding(c: CanvasRenderingContext2D) {
     const { x: cx, y: cy, w: cw, h: ch } = this.court;
 
-    // Left crowd - positioned on the left side of the court
-    if (this.crowdLeftImg.complete && this.crowdLeftImg.naturalWidth > 0) {
-      c.save();
-      c.globalAlpha = 0.5;
-      // Draw at left edge, partially overlapping court edge
-      c.drawImage(this.crowdLeftImg, cx - 50, cy, 60, ch);
-      c.restore();
-    }
+    // "GRITUAL" text vertically on both sides of court
+    c.save();
 
-    // Right crowd - positioned on the right side of the court
-    if (this.crowdRightImg.complete && this.crowdRightImg.naturalWidth > 0) {
-      c.save();
-      c.globalAlpha = 0.5;
-      // Draw at right edge, partially overlapping court edge
-      c.drawImage(this.crowdRightImg, cx + cw - 10, cy, 60, ch);
-      c.restore();
+    // Left side - vertical text
+    c.translate(cx - 6, cy + ch / 2);
+    c.rotate(-Math.PI / 2);
+    c.textAlign = 'center';
+    c.font = 'bold 11px "Fredoka One", sans-serif';
+    c.fillStyle = 'rgba(57,255,20,0.15)';
+    c.shadowColor = '#39ff14';
+    c.shadowBlur = 12;
+    c.fillText('GRITUAL', 0, 0);
+
+    // Glow layer 1
+    c.shadowBlur = 20;
+    c.fillStyle = 'rgba(57,255,20,0.08)';
+    c.fillText('GRITUAL', 0, 0);
+
+    // Core bright text
+    c.shadowBlur = 8;
+    c.fillStyle = 'rgba(57,255,20,0.6)';
+    c.fillText('GRITUAL', 0, 0);
+
+    c.restore();
+
+    // Right side - vertical text (mirrored)
+    c.save();
+    c.translate(cx + cw + 6, cy + ch / 2);
+    c.rotate(Math.PI / 2);
+    c.textAlign = 'center';
+    c.font = 'bold 11px "Fredoka One", sans-serif';
+
+    c.shadowColor = '#39ff14';
+    c.shadowBlur = 12;
+    c.fillStyle = 'rgba(57,255,20,0.15)';
+    c.fillText('GRITUAL', 0, 0);
+
+    c.shadowBlur = 20;
+    c.fillStyle = 'rgba(57,255,20,0.08)';
+    c.fillText('GRITUAL', 0, 0);
+
+    c.shadowBlur = 8;
+    c.fillStyle = 'rgba(57,255,20,0.6)';
+    c.fillText('GRITUAL', 0, 0);
+
+    c.restore();
+
+    // Small decorative dots along sides
+    c.fillStyle = 'rgba(57,255,20,0.3)';
+    for (let i = 0; i < 6; i++) {
+      const y = cy + (ch / 6) * i + ch / 12;
+      // Left dots
+      c.beginPath();
+      c.arc(cx - 12, y, 1.5, 0, Math.PI * 2);
+      c.fill();
+      // Right dots
+      c.beginPath();
+      c.arc(cx + cw + 12, y, 1.5, 0, Math.PI * 2);
+      c.fill();
     }
   }
 
@@ -713,45 +755,37 @@ export class TennisEngine {
   }
 
   private drawPlayer(c: CanvasRenderingContext2D) {
-    this.drawCharacter(c, this.pl.x, this.pl.y, this.pl.r, C.PLAYER, true);
+    this.drawSprite(c, this.pl.x, this.pl.y, this.pl.r, this.playerImg, C.PLAYER);
   }
 
   private drawAI(c: CanvasRenderingContext2D) {
-    this.drawCharacter(c, this.ai.x, this.ai.y, this.ai.r, C.AI, false);
+    this.drawSprite(c, this.ai.x, this.ai.y, this.ai.r, this.botImg, C.AI);
   }
 
-  private drawCharacter(c: CanvasRenderingContext2D, x: number, y: number, r: number, color: string, isPlayer: boolean) {
+  private drawSprite(c: CanvasRenderingContext2D, x: number, y: number, r: number, img: HTMLImageElement, glowColor: string) {
     // Shadow
     c.fillStyle = 'rgba(0,0,0,0.4)';
-    c.beginPath(); c.ellipse(x, y + r * 0.7, r * 0.7, r * 0.25, 0, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(x, y + r * 0.6, r * 0.6, r * 0.2, 0, 0, Math.PI * 2); c.fill();
 
-    // Body
-    c.fillStyle = color;
-    c.shadowColor = color;
-    c.shadowBlur = 10;
-    c.beginPath();
-    c.arc(x, y - r * 0.3, r * 0.6, 0, Math.PI * 2);
-    c.fill();
+    const size = r * 2.2;
 
-    // Racket
-    const angle = isPlayer ? -Math.PI / 4 : Math.PI / 4;
-    const rx = x + Math.cos(angle) * r;
-    const ry = (y - r * 0.3) + Math.sin(angle) * r;
-    c.strokeStyle = '#888';
-    c.lineWidth = 2;
-    c.beginPath(); c.moveTo(x, y - r * 0.3); c.lineTo(rx, ry); c.stroke();
-    c.fillStyle = color;
-    c.beginPath();
-    c.ellipse(rx, ry, r * 0.35, r * 0.5, angle, 0, Math.PI * 2);
-    c.fill();
-
-    // Head
-    c.fillStyle = '#d4a066';
-    c.beginPath();
-    c.arc(x, y - r * 1.1, r * 0.35, 0, Math.PI * 2);
-    c.fill();
-
-    c.shadowBlur = 0;
+    if (img.complete && img.naturalWidth > 0) {
+      // Draw sprite image
+      c.save();
+      c.shadowColor = glowColor;
+      c.shadowBlur = 12;
+      c.drawImage(img, x - size / 2, y - size / 2, size, size);
+      c.restore();
+    } else {
+      // Fallback: colored circle
+      c.fillStyle = glowColor;
+      c.shadowColor = glowColor;
+      c.shadowBlur = 10;
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fill();
+      c.shadowBlur = 0;
+    }
   }
 
   private drawBall(c: CanvasRenderingContext2D) {
@@ -831,48 +865,88 @@ export class TennisEngine {
   }
 
   private drawHUD(c: CanvasRenderingContext2D) {
-    // Score
+    const cx = this.W / 2;
+    const topY = 14;
+
+    // ===== CREATIVE SCOREBOARD =====
+    // Panel background with neon glow
+    const pw = 140;
+    const ph = 34;
+    c.save();
+    c.shadowColor = 'rgba(57,255,20,0.3)';
+    c.shadowBlur = 15;
+    c.fillStyle = 'rgba(10,15,10,0.85)';
+    c.strokeStyle = 'rgba(57,255,20,0.3)';
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(cx - pw / 2, topY, pw, ph, 10);
+    c.fill();
+    c.stroke();
+    c.restore();
+
+    // Player score (left, green)
     c.textAlign = 'center';
-    c.font = 'bold 28px "Fredoka One", sans-serif';
-    c.shadowColor = C.LINE;
+    c.font = 'bold 22px "Fredoka One", sans-serif';
+    c.shadowColor = C.PLAYER;
     c.shadowBlur = 8;
-    c.fillStyle = C.PLAYER;
-    c.fillText(`${this.s.playerScore}`, this.W / 2 - 35, 32);
-    c.fillStyle = 'rgba(255,255,255,0.3)';
-    c.fillText('-', this.W / 2, 30);
-    c.fillStyle = C.AI;
-    c.fillText(`${this.s.aiScore}`, this.W / 2 + 35, 32);
+    c.fillStyle = '#39ff14';
+    c.fillText(`${this.s.playerScore}`, cx - 40, topY + 23);
+
+    // VS divider
+    c.font = 'bold 10px sans-serif';
+    c.fillStyle = 'rgba(255,255,255,0.25)';
+    c.shadowBlur = 0;
+    c.fillText('VS', cx, topY + 20);
+
+    // AI score (right, red)
+    c.font = 'bold 22px "Fredoka One", sans-serif';
+    c.shadowColor = C.AI;
+    c.shadowBlur = 8;
+    c.fillStyle = '#ff4444';
+    c.fillText(`${this.s.aiScore}`, cx + 40, topY + 23);
     c.shadowBlur = 0;
 
-    // Rally
+    // Rally counter
     if (this.s.rallyCount > 1) {
-      c.font = 'bold 11px sans-serif';
-      c.fillStyle = 'rgba(57,255,20,0.55)';
-      c.fillText(`RALLY ${this.s.rallyCount}`, this.W / 2, 48);
+      const rallyText = `RALLY ${this.s.rallyCount}`;
+      c.font = 'bold 10px sans-serif';
+      const tw = c.measureText(rallyText).width;
+      c.fillStyle = 'rgba(10,15,10,0.8)';
+      c.beginPath();
+      c.roundRect(cx - tw / 2 - 8, topY + ph + 4, tw + 16, 18, 6);
+      c.fill();
+      c.fillStyle = 'rgba(57,255,20,0.7)';
+      c.shadowColor = 'rgba(57,255,20,0.4)';
+      c.shadowBlur = 6;
+      c.fillText(rallyText, cx, topY + ph + 16);
+      c.shadowBlur = 0;
     }
 
     // Timer
     if (this.level.timeLimit > 0) {
-      c.font = 'bold 14px monospace';
-      c.fillStyle = this.s.timeRemaining <= 10 ? C.AI : 'rgba(255,255,255,0.4)';
+      c.font = 'bold 12px monospace';
       c.textAlign = 'right';
+      c.fillStyle = this.s.timeRemaining <= 10 ? '#ff4444' : 'rgba(255,255,255,0.35)';
+      c.shadowColor = this.s.timeRemaining <= 10 ? '#ff4444' : 'transparent';
+      c.shadowBlur = this.s.timeRemaining <= 10 ? 6 : 0;
       c.fillText(`${Math.floor(this.s.timeRemaining / 60)}:${String(this.s.timeRemaining % 60).padStart(2, '0')}`, this.W - 12, 22);
+      c.shadowBlur = 0;
     }
 
-    // Level
-    c.font = 'bold 10px sans-serif';
-    c.fillStyle = 'rgba(255,255,255,0.3)';
+    // Level badge
     c.textAlign = 'left';
-    c.fillText(`Lv.${this.level.id}`, 12, 20);
-
-    // Labels
-    c.textAlign = 'left';
-    c.fillStyle = C.PLAYER;
     c.font = 'bold 9px sans-serif';
-    c.fillText('YOU', 12, this.H - 12);
+    c.fillStyle = 'rgba(255,255,255,0.25)';
+    c.fillText(`Lv.${this.level.id}`, 12, 22);
+
+    // Player / AI labels
+    c.textAlign = 'left';
+    c.font = 'bold 8px sans-serif';
+    c.fillStyle = '#39ff14';
+    c.fillText('YOU', 12, this.H - 10);
     c.textAlign = 'right';
-    c.fillStyle = C.AI;
-    c.fillText(this.pers.name.toUpperCase(), this.W - 12, 55);
+    c.fillStyle = '#ff4444';
+    c.fillText(this.pers.name.toUpperCase(), this.W - 12, 58);
   }
 
   private drawServePrompt(c: CanvasRenderingContext2D) {
