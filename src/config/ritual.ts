@@ -42,59 +42,78 @@ export const isContractConfigured = () => {
 
 // ABI contract game (harus sama persis dengan contract di Remix)
 export const GAME_CONTRACT_ABI = [
-  [
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "score",
-        "type": "uint256"
-      }
-    ],
-    "name": "ScoreSubmitted",
-    "type": "event"
+    inputs: [],
+    name: 'registerPlayer',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "score",
-        "type": "uint256"
-      }
+    inputs: [
+      { name: 'levelId', type: 'uint256' },
+      { name: 'playerScore', type: 'uint256' },
+      { name: 'aiScore', type: 'uint256' },
+      { name: 'starsEarned', type: 'uint256' },
+      { name: 'rallyLength', type: 'uint256' },
+      { name: 'aiPersonalityHash', type: 'bytes32' },
     ],
-    "name": "submitScore",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'submitMatchResult',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+    inputs: [{ name: 'score', type: 'uint256' }],
+    name: 'updateEndlessScore',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '', type: 'address' }],
+    name: 'players',
+    outputs: [
+      { name: 'username', type: 'string' },
+      { name: 'totalMatches', type: 'uint256' },
+      { name: 'totalWins', type: 'uint256' },
+      { name: 'totalStars', type: 'uint256' },
+      { name: 'endlessHighScore', type: 'uint256' },
+      { name: 'lastPlayedAt', type: 'uint256' },
+      { name: 'exists', type: 'bool' },
     ],
-    "name": "bestScore",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: '', type: 'address' },
+      { name: '', type: 'uint256' },
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
-]
+    name: 'levelBestStars',
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'player', type: 'address' },
+      { indexed: false, name: 'username', type: 'string' },
+    ],
+    name: 'PlayerRegistered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'player', type: 'address' },
+      { indexed: true, name: 'levelId', type: 'uint256' },
+      { indexed: false, name: 'stars', type: 'uint256' },
+      { indexed: false, name: 'rallyLength', type: 'uint256' },
+    ],
+    name: 'MatchCompleted',
+    type: 'event',
   },
 ] as const;
 
