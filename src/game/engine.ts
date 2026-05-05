@@ -70,6 +70,13 @@ export class TennisEngine {
   private netY = 0;
   private serveBox = { top: 0, bottom: 0, leftW: 0, rightX: 0 };
 
+  // Assets
+  private courtImg = new Image();
+  private crowdLeftImg = new Image();
+  private crowdRightImg = new Image();
+  private umpireImg = new Image();
+  private assetsLoaded = false;
+
   // Pointer tracking
   private pointerX = 0;
   private pointerY = 0;
@@ -115,6 +122,19 @@ export class TennisEngine {
       message: '', msgTimer: 0, isPlaying: false,
       playerGames: 0, aiGames: 0, tennisScore: '0-0',
     };
+
+    // Load assets
+    this.courtImg.src = '/assets/court-new.png';
+    this.crowdLeftImg.src = '/assets/crowd-left.png';
+    this.crowdRightImg.src = '/assets/crowd-right.png';
+    this.umpireImg.src = '/assets/umpire.png';
+
+    Promise.all([
+      new Promise<void>(r => { this.courtImg.onload = () => r(); this.courtImg.onerror = () => r(); }),
+      new Promise<void>(r => { this.crowdLeftImg.onload = () => r(); this.crowdLeftImg.onerror = () => r(); }),
+      new Promise<void>(r => { this.crowdRightImg.onload = () => r(); this.crowdRightImg.onerror = () => r(); }),
+      new Promise<void>(r => { this.umpireImg.onload = () => r(); this.umpireImg.onerror = () => r(); }),
+    ]).then(() => { this.assetsLoaded = true; });
 
     this.setupInput();
   }
@@ -573,6 +593,8 @@ export class TennisEngine {
     c.save();
     c.translate(this.shake.x, this.shake.y);
     this.drawCourt(c);
+    this.drawCrowd(c);
+    this.drawUmpire(c);
     this.drawNet(c);
     this.drawPlayer(c);
     this.drawAI(c);
@@ -591,46 +613,82 @@ export class TennisEngine {
 
     const { x: cx, y: cy, w: cw, h: ch } = this.court;
 
-    // Court surface (outer)
-    c.fillStyle = C.COURT_BG;
-    c.fillRect(cx - 4, cy - 4, cw + 8, ch + 8);
+    // Draw court image if loaded, fallback to procedural
+    if (this.assetsLoaded && this.courtImg.complete && this.courtImg.naturalWidth > 0) {
+      // Draw court image scaled to fit
+      c.drawImage(this.courtImg, cx - 10, cy - 10, cw + 20, ch + 20);
+    } else {
+      // Fallback: procedural court
+      c.fillStyle = C.COURT_BG;
+      c.fillRect(cx - 4, cy - 4, cw + 8, ch + 8);
+      c.fillStyle = C.COURT_IN;
+      c.fillRect(cx, cy, cw, ch);
 
-    // Court playing area
-    c.fillStyle = C.COURT_IN;
-    c.fillRect(cx, cy, cw, ch);
+      // Court lines
+      c.strokeStyle = C.LINE;
+      c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + cw, cy); c.stroke();
+      c.beginPath(); c.moveTo(cx, cy + ch); c.lineTo(cx + cw, cy + ch); c.stroke();
+      c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx, cy + ch); c.stroke();
+      c.beginPath(); c.moveTo(cx + cw, cy); c.lineTo(cx + cw, cy + ch); c.stroke();
 
-    // Court lines
-    c.strokeStyle = C.LINE;
-    c.lineWidth = 1.5;
+      const serviceLineTop = cy + ch * 0.25;
+      const serviceLineBottom = cy + ch * 0.75;
+      c.beginPath(); c.moveTo(cx, serviceLineTop); c.lineTo(cx + cw, serviceLineTop); c.stroke();
+      c.beginPath(); c.moveTo(cx, serviceLineBottom); c.lineTo(cx + cw, serviceLineBottom); c.stroke();
+      c.beginPath(); c.moveTo(cx + cw / 2, serviceLineTop); c.lineTo(cx + cw / 2, serviceLineBottom); c.stroke();
 
-    // Baseline (top & bottom)
-    c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + cw, cy); c.stroke();
-    c.beginPath(); c.moveTo(cx, cy + ch); c.lineTo(cx + cw, cy + ch); c.stroke();
+      // Center mark dashes
+      c.lineWidth = 2;
+      c.beginPath(); c.moveTo(cx + cw / 2, cy - 3); c.lineTo(cx + cw / 2, cy + 8); c.stroke();
+      c.beginPath(); c.moveTo(cx + cw / 2, cy + ch - 8); c.lineTo(cx + cw / 2, cy + ch + 3); c.stroke();
+    }
+  }
 
-    // Sidelines (left & right)
-    c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx, cy + ch); c.stroke();
-    c.beginPath(); c.moveTo(cx + cw, cy); c.lineTo(cx + cw, cy + ch); c.stroke();
+  private drawCrowd(c: CanvasRenderingContext2D) {
+    if (!this.assetsLoaded) return;
+    const { x: cx, y: cy, w: cw, h: ch } = this.court;
 
-    // Service line (horizontal, at 25% from top and bottom)
-    const serviceLineTop = cy + ch * 0.25;
-    const serviceLineBottom = cy + ch * 0.75;
-    c.beginPath(); c.moveTo(cx, serviceLineTop); c.lineTo(cx + cw, serviceLineTop); c.stroke();
-    c.beginPath(); c.moveTo(cx, serviceLineBottom); c.lineTo(cx + cw, serviceLineBottom); c.stroke();
+    // Left crowd
+    if (this.crowdLeftImg.complete && this.crowdLeftImg.naturalWidth > 0) {
+      const clSize = 60;
+      c.save();
+      c.globalAlpha = 0.7;
+      // Draw multiple crowd sprites along left edge
+      for (let i = 0; i < 4; i++) {
+        const cy_pos = cy + (ch / 4) * i + 10;
+        c.drawImage(this.crowdLeftImg, cx - clSize - 5, cy_pos - clSize / 2, clSize, clSize);
+      }
+      c.restore();
+    }
 
-    // Center service line (vertical)
-    c.beginPath(); c.moveTo(cx + cw / 2, serviceLineTop); c.lineTo(cx + cw / 2, serviceLineBottom); c.stroke();
+    // Right crowd
+    if (this.crowdRightImg.complete && this.crowdRightImg.naturalWidth > 0) {
+      const crSize = 60;
+      c.save();
+      c.globalAlpha = 0.7;
+      for (let i = 0; i < 4; i++) {
+        const cy_pos = cy + (ch / 4) * i + 10;
+        c.drawImage(this.crowdRightImg, cx + cw + 5, cy_pos - crSize / 2, crSize, crSize);
+      }
+      c.restore();
+    }
+  }
 
-    // Center mark (small dashes on baselines)
-    c.lineWidth = 2;
-    c.beginPath(); c.moveTo(cx + cw / 2, cy - 3); c.lineTo(cx + cw / 2, cy + 8); c.stroke();
-    c.beginPath(); c.moveTo(cx + cw / 2, cy + ch - 8); c.lineTo(cx + cw / 2, cy + ch + 3); c.stroke();
+  private drawUmpire(c: CanvasRenderingContext2D) {
+    if (!this.assetsLoaded) return;
+    const { x: cx, w: cw } = this.court;
 
-    // Net line (visual only, net drawn separately)
-    c.strokeStyle = 'rgba(255,255,255,0.15)';
-    c.lineWidth = 0.5;
-    c.setLineDash([4, 4]);
-    c.beginPath(); c.moveTo(cx, this.netY); c.lineTo(cx + cw, this.netY); c.stroke();
-    c.setLineDash([]);
+    if (this.umpireImg.complete && this.umpireImg.naturalWidth > 0) {
+      const uw = 40;
+      const uh = 40;
+      const ux = cx + cw / 2 - uw / 2;
+      const uy = this.netY - uh + 5;
+      c.save();
+      c.globalAlpha = 0.85;
+      c.drawImage(this.umpireImg, ux, uy, uw, uh);
+      c.restore();
+    }
   }
 
   private drawNet(c: CanvasRenderingContext2D) {

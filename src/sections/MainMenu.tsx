@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Trophy, User, HelpCircle, Wallet, LogOut, Sparkles, Zap } from 'lucide-react';
+import { Trophy, User, HelpCircle, Wallet, LogOut, Sparkles, Zap, Info } from 'lucide-react';
 
 interface MainMenuProps {
   totalStars: number;
@@ -9,11 +9,12 @@ interface MainMenuProps {
   onLeaderboard: () => void;
   onProfile: () => void;
   onHowToPlay: () => void;
+  onAbout: () => void;
   onConnectWallet: () => void;
   onDisconnect: () => void;
 }
 
-export default function MainMenu({ totalStars, isConnected, account, onPlay, onLeaderboard, onProfile, onHowToPlay, onConnectWallet, onDisconnect }: MainMenuProps) {
+export default function MainMenu({ totalStars, isConnected, account, onPlay, onLeaderboard, onProfile, onHowToPlay, onAbout, onConnectWallet, onDisconnect }: MainMenuProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -226,9 +227,14 @@ export default function MainMenu({ totalStars, isConnected, account, onPlay, onL
           </button>
         </div>
 
-        <button onClick={onHowToPlay} className="w-full h-10 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:scale-105 transition-all flex items-center justify-center gap-2 text-sm">
-          <HelpCircle size={14} /> How to Play
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={onHowToPlay} className="h-10 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:scale-105 transition-all flex items-center justify-center gap-2 text-sm">
+            <HelpCircle size={14} /> How to Play
+          </button>
+          <button onClick={onAbout} className="h-10 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-[#39ff14]/10 hover:border-[#39ff14]/20 hover:text-[#39ff14] hover:scale-105 transition-all flex items-center justify-center gap-2 text-sm">
+            <Info size={14} /> About
+          </button>
+        </div>
       </div>
 
       {/* Footer */}

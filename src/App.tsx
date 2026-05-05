@@ -11,7 +11,9 @@ import ProfileCreation from '@/sections/ProfileCreation';
 import HowToPlay from '@/sections/HowToPlay';
 import WalletConnect from '@/sections/WalletConnect';
 import MatchResult from '@/sections/MatchResult';
-import { Toaster } from 'sonner';
+import LoadingScreen from '@/sections/LoadingScreen';
+import AboutScreen from '@/sections/About';
+import { Toaster, toast } from 'sonner';
 
 const DEFAULT_SETTINGS: GameSettings = {
   soundEnabled: true,
@@ -52,6 +54,8 @@ export default function App() {
   });
   const [showWalletConnect, setShowWalletConnect] = useState(false);
   const [showMatchResult, setShowMatchResult] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [matchResult, setMatchResult] = useState<{
     winner: 'player' | 'ai';
     playerScore: number;
@@ -105,7 +109,7 @@ export default function App() {
     setCurrentScreen('playing');
   }, []);
 
-  const handleMatchEnd = useCallback((winner: 'player' | 'ai', playerScore: number, aiScore: number, maxRally: number, aiPersonality: AIPersonality) => {
+  const handleMatchEnd = useCallback(async (winner: 'player' | 'ai', playerScore: number, aiScore: number, maxRally: number, aiPersonality: AIPersonality) => {
     let stars = 0;
     if (winner === 'player') {
       if (playerScore === 3 && aiScore === 0) stars = 3;
@@ -117,10 +121,37 @@ export default function App() {
 
     saveLevelProgress(selectedLevel, stars, winner === 'player');
 
-    if (web3.isConnected) {
-      web3.submitMatchResult(selectedLevel, playerScore, aiScore, stars, maxRally,
+    // Kirim score ke smart contract Ritual Testnet (kalau wallet connected)
+    if (web3.isConnected && web3.isOnRitual) {
+      toast.loading('Submitting score to Ritual Testnet...', { id: 'submit-score' });
+
+      const result = await web3.submitMatchResult(
+        selectedLevel,
+        playerScore,
+        aiScore,
+        stars,
+        maxRally,
         '0x0000000000000000000000000000000000000000000000000000000000000000'
       );
+
+      if (result.success) {
+        toast.success(
+          <div className="flex flex-col gap-1">
+            <span>Score saved on-chain!</span>
+            <a
+              href={`https://explorer.ritualfoundation.org/tx/${result.hash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#39ff14] underline text-xs"
+            >
+              View on Explorer
+            </a>
+          </div>,
+          { id: 'submit-score', duration: 5000 }
+        );
+      } else {
+        toast.error(`Submit failed: ${result.error}`, { id: 'submit-score', duration: 4000 });
+      }
     }
 
     setMatchResult({ winner, playerScore, aiScore, maxRally, levelId: selectedLevel, aiPersonality });
@@ -171,6 +202,11 @@ export default function App() {
 
   const totalStars = Object.values(levelProgress).reduce((sum, p) => sum + p.stars, 0);
 
+  // Loading screen
+  if (isLoading) {
+    return <LoadingScreen onComplete={() => setIsLoading(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden select-none">
       <Toaster position="top-center" richColors />
@@ -179,6 +215,7 @@ export default function App() {
         <MainMenu totalStars={totalStars} isConnected={web3.isConnected} account={web3.account}
           onPlay={handlePlay} onLeaderboard={() => setCurrentScreen('leaderboard')}
           onProfile={() => setCurrentScreen('profile')} onHowToPlay={() => setCurrentScreen('howToPlay')}
+          onAbout={() => setShowAbout(true)}
           onConnectWallet={() => setShowWalletConnect(true)} onDisconnect={web3.disconnect} />
       )}
 
@@ -214,6 +251,8 @@ export default function App() {
       )}
 
       {currentScreen === 'howToPlay' && <HowToPlay onBack={handleBackToMenu} />}
+
+      {showAbout && <AboutScreen onBack={() => setShowAbout(false)} />}
 
       {showWalletConnect && (
         <WalletConnect onConnect={web3.connect} onClose={() => setShowWalletConnect(false)}

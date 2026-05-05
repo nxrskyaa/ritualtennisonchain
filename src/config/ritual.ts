@@ -1,6 +1,9 @@
 import { defineChain } from 'viem';
 
-// Official Ritual Chain config from docs.ritualfoundation.org
+// ============================================================
+// RITUAL TESTNET CHAIN CONFIG
+// Docs: https://docs.ritualfoundation.org
+// ============================================================
 export const ritualChain = defineChain({
   id: 1979,
   name: 'Ritual Chain',
@@ -21,9 +24,23 @@ export const ritualChain = defineChain({
 // Export as ritualTestnet for backward compatibility
 export const ritualTestnet = ritualChain;
 
-// Placeholder - update after deploying contract
+// ============================================================
+// IMPORTANT: Ganti alamat di bawah ini dengan contract address
+// kamu yang sudah di-deploy via Remix di Ritual Testnet.
+//
+// Cara dapat address:
+// 1. Buka Remix → tab "Deploy & Run" → lihat "Deployed Contracts"
+// 2. Copy alamat contract (0x...)
+// 3. Paste di bawah ini, ganti 0x0000...
+// ============================================================
 export const GAME_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 
+// Helper untuk cek apakah contract address sudah di-set
+export const isContractConfigured = () => {
+  return GAME_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000';
+};
+
+// ABI contract game (harus sama persis dengan contract di Remix)
 export const GAME_CONTRACT_ABI = [
   {
     inputs: [],

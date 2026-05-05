@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { createPublicClient, http, type Address } from 'viem';
-import { ritualChain, GAME_CONTRACT_ADDRESS, GAME_CONTRACT_ABI } from '@/config/ritual';
+import { createPublicClient, http, encodeFunctionData, type Address } from 'viem';
+import { ritualChain, GAME_CONTRACT_ADDRESS, GAME_CONTRACT_ABI, isContractConfigured } from '@/config/ritual';
 import type { PlayerProfile } from '@/types/game';
 
 const CHAIN_ID_HEX = '0x7BF'; // 1979 in hex
@@ -140,6 +140,8 @@ export function useWeb3() {
   }, []);
 
   const readProfile = useCallback(async (address: Address): Promise<PlayerProfile | null> => {
+    // Skip kalau contract belum di-configure
+    if (!isContractConfigured()) return null;
     try {
       const result = await publicClient.readContract({
         address: GAME_CONTRACT_ADDRESS,
@@ -205,26 +207,66 @@ export function useWeb3() {
     }
   }, []);
 
+  // ============================================================
+  // SUBMIT MATCH RESULT — kirim score ke smart contract Ritual
+  // ============================================================
   const submitMatchResult = useCallback(async (
-    _levelId: number, _playerScore: number, _aiScore: number,
-    _starsEarned: number, _rallyLength: number, _aiPersonalityHash: string
-  ) => {
+    levelId: number,
+    playerScore: number,
+    aiScore: number,
+    starsEarned: number,
+    rallyLength: number,
+    aiPersonalityHash: string
+  ): Promise<{ success: boolean; hash?: string; error?: string }> => {
     const eth = providerRef.current;
-    if (!eth || !account) return;
+    if (!eth || !account) {
+      return { success: false, error: 'Wallet not connected' };
+    }
+    if (!isContractConfigured()) {
+      return { success: false, error: 'Contract address not configured. Update GAME_CONTRACT_ADDRESS in ritual.ts' };
+    }
+
     try {
-      await eth.request({
+      // Encode function call pakai viem
+      const data = encodeFunctionData({
+        abi: GAME_CONTRACT_ABI,
+        functionName: 'submitMatchResult',
+        args: [
+          BigInt(levelId),
+          BigInt(playerScore),
+          BigInt(aiScore),
+          BigInt(starsEarned),
+          BigInt(rallyLength),
+          aiPersonalityHash as `0x${string}`,
+        ],
+      });
+
+      const txHash = await eth.request({
         method: 'eth_sendTransaction',
         params: [{
           from: account,
           to: GAME_CONTRACT_ADDRESS,
-          data: '0x', // Would encode actual function call
+          data,
           value: '0x0',
         }],
       });
+
+      return { success: true, hash: txHash as string };
     } catch (err: any) {
-      console.error('Submit failed:', err.message);
+      return { success: false, error: err?.message || err?.error?.message || 'Transaction rejected' };
     }
   }, [account]);
 
-  return { account, isConnected, isConnecting, isOnRitual, chainId, error, connect, disconnect, readProfile, submitMatchResult };
+  return {
+    account,
+    isConnected,
+    isConnecting,
+    isOnRitual,
+    chainId,
+    error,
+    connect,
+    disconnect,
+    readProfile,
+    submitMatchResult,
+  };
 }
